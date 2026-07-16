@@ -1,0 +1,31 @@
+# Large model files
+models/
+
+# Large raster files
+Data/*.tif
+Data/*.tif.aux.xml
+Data/*.npy
+
+# Large pickle files
+Data/*.pkl
+
+# Sentinel-2 raw scenes (large)
+Data/sentinel2/
+
+# Keep CSV, JSON, PNG results
+!Data/*.csv
+!Data/*.json
+!Data/*.png
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Environment
+*.egg-info/
+.env
