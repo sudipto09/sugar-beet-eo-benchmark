@@ -2,14 +2,14 @@
 
 **Master's Practikum - M.Sc. Aerospace Informatics**  
 **Julius-Maximilians-Universität Würzburg · Computer Vision Lab**  
-**Advisor:** Dr. Fayaz Ali Dharejo · Prof. Dr. Radu Timofte
+**Advisor:** Dr. Fayaz Ali Dharejo 
 **Chair:** Prof. Dr. Radu Timofte
 
 [![Python](https://img.shields.io/badge/Python-3.10-blue)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.7.1-orange)](https://pytorch.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
----g
+
 
 ## Overview
 
