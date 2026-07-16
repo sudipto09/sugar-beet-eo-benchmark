@@ -38,4 +38,4 @@ for date_str, date_search in DATES_URLS.items():
         profile = src.profile
     with rasterio.open(out_path, 'w', **profile) as dst:
         dst.write(data, 1)
-    print(f"  B08 ✓ shape={data.shape}")
+    print(f"  B08  shape={data.shape}")

@@ -27,10 +27,7 @@ gdf["ndvi_jun"]        = df["ndvi_jun"].values
 gdf["ndvi_aug"]        = df["ndvi_aug"].values
 gdf["ndvi_change"]     = df["ndvi_aug"].values - df["ndvi_jun"].values
 
-# ============================================================
-# Q: What does each Prithvi cluster look like in terms of
-#    field area, NDVI level, and spatial location?
-# ============================================================
+
 print("Prithvi cluster characteristics:")
 print("="*70)
 for c in range(5):
@@ -55,9 +52,8 @@ for c in range(5):
     print(f"  Mean NDVI Aug:  {sub['ndvi_aug'].mean():.3f}")
     print(f"  NDVI change Jun→Aug: {sub['ndvi_change'].mean():.3f}")
 
-# ============================================================
-# SPATIAL MAP — where are Prithvi's clusters geographically?
-# ============================================================
+
+# SPATIAL MAP 
 fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
 colors = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd']
@@ -69,7 +65,7 @@ for c in range(5):
     sub = gdf_wgs[mask]
     sub.plot(ax=axes[0], color=colors[c], alpha=0.7,
              label=f"Cluster {c} (n={mask.sum()})")
-axes[0].set_title("Prithvi EO 2.0 — Spatial Cluster Distribution",
+axes[0].set_title("Prithvi EO 2.0 - Spatial Cluster Distribution",
                   fontweight='bold')
 axes[0].legend(fontsize=9)
 axes[0].set_xlabel("Longitude")
@@ -81,7 +77,7 @@ for c in range(5):
     sub = gdf_wgs[mask]
     sub.plot(ax=axes[1], color=colors[c], alpha=0.7,
              label=f"Cluster {c} (n={mask.sum()})")
-axes[1].set_title("NDVI Baseline — Spatial Cluster Distribution",
+axes[1].set_title("NDVI Baseline - Spatial Cluster Distribution",
                   fontweight='bold')
 axes[1].legend(fontsize=9)
 axes[1].set_xlabel("Longitude")
@@ -92,9 +88,7 @@ plt.tight_layout()
 plt.savefig(f"{DATA_DIR}/spatial_cluster_map.png", dpi=120, bbox_inches='tight')
 print(f"\nSpatial map saved: Data/spatial_cluster_map.png")
 
-# ============================================================
-# KEY QUESTION: Do Prithvi clusters correlate with field size?
-# ============================================================
+
 print("\n\nPrithvi cluster vs field area (testing if Prithvi clusters by size):")
 for c in range(5):
     mask = gdf["prithvi_cluster"] == c

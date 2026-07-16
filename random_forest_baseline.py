@@ -30,12 +30,10 @@ gdf = gdf.to_crs(scene_crs)
 # Load existing results
 df_existing = pd.read_csv(f"{DATA_DIR}/benchmark_results_full.csv")
 
-# ============================================================
+
 # STEP 1: Extract full spectral features per field
-# All 7 bands × 3 timesteps = 21 features per field
-# This is what a classical RF approach uses
-# ============================================================
-print("Extracting full spectral features (7 bands × 3 dates)...")
+
+print("Extracting full spectral features (7 bands x 3 dates)...")
 
 spectral_features = []
 valid_field_ids = []
@@ -72,9 +70,9 @@ print(f"Spectral features shape: {spectral_features.shape}")  # (1020, 21)
 print(f"Feature range: {spectral_features.min():.1f} to {spectral_features.max():.1f}")
 print(f"Fields with all-zero features: {(spectral_features.sum(axis=1) == 0).sum()}")
 
-# ============================================================
+
 # STEP 2: Raw spectral KMeans (classical baseline)
-# ============================================================
+
 print("\nClustering raw spectral features (KMeans)...")
 
 scaler = StandardScaler()
@@ -90,12 +88,9 @@ print(f"  Silhouette: {spectral_sil:.4f}")
 print(f"  Davies-Bouldin: {spectral_db:.4f}")
 print(f"  Cluster sizes: {np.bincount(spectral_labels)}")
 
-# ============================================================
+
 # STEP 3: Random Forest leaf embeddings
-# Use NDVI cluster labels as pseudo-labels to train RF
-# Then extract leaf node activations as RF embedding
-# This is the standard "RF as feature extractor" approach
-# ============================================================
+
 print("\nTraining Random Forest on NDVI pseudo-labels...")
 
 # Use NDVI cluster labels as pseudo-supervision
@@ -109,7 +104,7 @@ rf = RandomForestClassifier(
 )
 rf.fit(X_spectral, ndvi_labels)
 
-# Cross-validation score — how well does RF predict NDVI clusters?
+# Cross-validation score 
 cv_scores = cross_val_score(rf, X_spectral, ndvi_labels, cv=5, scoring='accuracy')
 print(f"RF cross-val accuracy predicting NDVI clusters: {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
 
@@ -140,9 +135,9 @@ print(f"  Silhouette: {rf_sil:.4f}")
 print(f"  Davies-Bouldin: {rf_db:.4f}")
 print(f"  Cluster sizes: {np.bincount(rf_labels)}")
 
-# ============================================================
-# STEP 4: FEATURE IMPORTANCE — what does RF care about?
-# ============================================================
+
+# STEP 4: FEATURE IMPORTANCE
+
 feature_names = []
 for date in DATE_LABELS:
     for band in BANDS:
@@ -155,9 +150,9 @@ print("\nTop 10 most important features (RF):")
 for i in top_idx:
     print(f"  {feature_names[i]:<20}: {importances[i]:.4f}")
 
-# ============================================================
+
 # STEP 5: COMPLETE BENCHMARK TABLE
-# ============================================================
+
 # Load Prithvi scores
 with open(f"{DATA_DIR}/prithvi_embeddings_all_fields.pkl", "rb") as f:
     prithvi_results = pickle.load(f)
@@ -185,7 +180,7 @@ ndvi_sil = silhouette_score(X_ndvi, ndvi_labels_2)
 ndvi_db  = davies_bouldin_score(X_ndvi, ndvi_labels_2)
 
 print("\n" + "="*65)
-print("COMPLETE BENCHMARK — Franconia Sugar Beet Fields 2022 (n=1020)")
+print("COMPLETE BENCHMARK - Franconia Sugar Beet Fields 2022 (n=1020)")
 print("3 Sentinel-2 timesteps: Apr 16 / Jun 18 / Aug 7")
 print("="*65)
 print(f"{'Model':<30} {'Silhouette ↑':>13} {'Davies-Bouldin ↓':>17}")
@@ -196,9 +191,9 @@ print(f"{'Raw Spectral KMeans':<30} {spectral_sil:>13.4f} {spectral_db:>17.4f}")
 print(f"{'NDVI baseline':<30} {ndvi_sil:>13.4f} {ndvi_db:>17.4f}")
 print("="*65)
 
-# ============================================================
-# STEP 6: PLOT — Feature importance bar chart
-# ============================================================
+
+# STEP 6: PLOT - Feature importance bar chart
+
 fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
 # Feature importance

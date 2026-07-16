@@ -18,9 +18,9 @@ SCENE_DIR  = f"{DATA_DIR}/sentinel2/wuerzburg_core"
 DATES      = ["20220416", "20220618", "20220807"]
 DATE_LABELS = ["Apr 16", "Jun 18", "Aug 7"]
 
-# ============================================================
+
 # 1. LOAD PRITHVI EMBEDDINGS
-# ============================================================
+
 print("Loading Prithvi embeddings...")
 with open(f"{DATA_DIR}/prithvi_embeddings_all_fields.pkl", "rb") as f:
     results = pickle.load(f)
@@ -29,9 +29,9 @@ field_ids  = [r["field_id"]  for r in results]
 embeddings = np.stack([r["embedding"] for r in results])
 print(f"Embeddings: {embeddings.shape}")  # (1020, 1536)
 
-# ============================================================
+
 # 2. COMPUTE NDVI / NDRE BASELINE PER FIELD
-# ============================================================
+
 print("Computing NDVI/NDRE baseline per field...")
 
 gdf = gpd.read_file(f"{DATA_DIR}/sugar_beet_fields_franconia_hires.geojson")
@@ -81,9 +81,9 @@ for idx, row in gdf.iterrows():
 ndvi_features = np.array(ndvi_features)
 print(f"NDVI/NDRE features: {ndvi_features.shape}")  # (1020, 6)
 
-# ============================================================
-# 3. CLUSTERING — PRITHVI vs NDVI BASELINE
-# ============================================================
+
+# 3. CLUSTERING  PRITHVI vs NDVI BASELINE
+
 print("\nClustering...")
 
 N_CLUSTERS = 5
@@ -124,11 +124,11 @@ ndvi_labels, ndvi_X, ndvi_sil, ndvi_db = cluster_and_score(
     ndvi_features, "NDVI/NDRE baseline"
 )
 
-# ============================================================
+
 # 4. RESULTS TABLE
-# ============================================================
+
 print("\n" + "="*55)
-print("BENCHMARK RESULTS — Franconia Sugar Beet Fields 2022")
+print("BENCHMARK RESULTS - Franconia Sugar Beet Fields 2022")
 print("="*55)
 print(f"{'Model':<25} {'Silhouette':>12} {'Davies-Bouldin':>16}")
 print("-"*55)
@@ -136,9 +136,9 @@ print(f"{'Prithvi EO 2.0':<25} {prithvi_sil:>12.4f} {prithvi_db:>16.4f}")
 print(f"{'NDVI/NDRE baseline':<25} {ndvi_sil:>12.4f} {ndvi_db:>16.4f}")
 print("="*55)
 
-# ============================================================
-# 5. VISUALIZE — PCA scatter plot
-# ============================================================
+
+# 5. VISUALIZE  PCA scatter plot
+
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 # Prithvi

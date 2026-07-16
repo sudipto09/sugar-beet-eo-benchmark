@@ -49,5 +49,5 @@ for item in selected:
             profile = src.profile
         with rasterio.open(out_path,'w',**profile) as dst:
             dst.write(data, 1)
-        print(f"  {band} ✓")
+        print(f"  {band} ")
 print("\nDone.")

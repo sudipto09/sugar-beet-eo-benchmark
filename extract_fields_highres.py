@@ -37,7 +37,7 @@ gdf = gpd.GeoDataFrame(
     crs=crs
 )
 
-# Reproject to UTM zone 32N (EPSG:32632) for accurate area in meters
+
 gdf_utm = gdf.to_crs("EPSG:32632")
 gdf["area_ha"] = gdf_utm.geometry.area / 10000  # m² → ha
 

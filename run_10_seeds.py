@@ -78,9 +78,9 @@ ndvi_targets = np.column_stack([
 
 device = torch.device("cuda")
 
-# ============================================================
+
 # FINE-TUNING FUNCTION
-# ============================================================
+
 class NDVIHead(nn.Module):
     def __init__(self):
         super().__init__()
@@ -128,9 +128,9 @@ def finetune_and_embed(embeddings, targets, seed):
             reps.append(ext(all_x[i:i+128].to(device)).cpu().numpy())
     return np.vstack(reps)
 
-# ============================================================
+
 # MULTI-SEED EVALUATION
-# ============================================================
+
 def cluster_scores(X, seed, n=N_CLUSTERS):
     km = KMeans(n_clusters=n, random_state=seed, n_init=10)
     labels = km.fit_predict(X)
@@ -184,11 +184,11 @@ for seed in range(N_SEEDS):
         all_scores[name]["sil"].append(sil)
         all_scores[name]["db"].append(db)
 
-# ============================================================
+
 # RESULTS WITH IQM + BOOTSTRAPPED CI
-# ============================================================
+
 print("\n" + "="*80)
-print("GEO-BENCH STYLE RESULTS — 10 seeds, IQM + 95% bootstrapped CI")
+print("GEO-BENCH STYLE RESULTS - 10 seeds, IQM + 95% bootstrapped CI")
 print("Franconia Sugar Beet Fields 2022, n=1020")
 print("="*80)
 print(f"{'Model':<30} {'Sil IQM':>10} {'Sil 95% CI':>20} {'DB IQM':>10} {'DB 95% CI':>20}")
@@ -214,9 +214,9 @@ for name in MODELS:
 
 print("="*80)
 
-# ============================================================
-# VIOLIN PLOT (GEO-Bench Fig 4 style)
-# ============================================================
+
+# VIOLIN PLOT 
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -254,7 +254,7 @@ for ax, metric, label, better in zip(
     ax.grid(True, alpha=0.3, axis='y')
 
 plt.suptitle("GEO-Bench Style Benchmark\n"
-             "Prithvi EO 2.0 vs Baselines — Sugar Beet Franconia 2022",
+             "Prithvi EO 2.0 vs Baselines - Sugar Beet Franconia 2022",
              fontsize=13, fontweight='bold')
 plt.tight_layout()
 plt.savefig(f"{DATA_DIR}/geobench_style_results.png",

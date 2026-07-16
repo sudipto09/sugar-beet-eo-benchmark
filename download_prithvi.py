@@ -7,7 +7,7 @@ path = snapshot_download(
 )
 print(f"Done. Downloaded to: {path}")
 
-# Verify key files exist
+
 import os
 files = os.listdir(path)
 print(f"Files downloaded: {files}")

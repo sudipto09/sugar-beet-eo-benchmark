@@ -25,9 +25,9 @@ MODEL_DIR = "/home/sudiptochakraborty/praktikum_cv/models/prithvi_300m"
 device = torch.device("cuda")
 print(f"Device: {device}")
 
-# ============================================================
+
 # 1. LOAD DATA
-# ============================================================
+
 print("Loading embeddings and labels...")
 
 with open(f"{DATA_DIR}/prithvi_embeddings_all_fields.pkl", "rb") as f:
@@ -38,7 +38,7 @@ embeddings = np.stack([r["embedding"] for r in results])  # (1020, 1536)
 # Load NDVI features as supervision signal
 df = pd.read_csv(f"{DATA_DIR}/benchmark_results_full.csv")
 
-# NDVI trajectory as regression target — 3 values per field
+# NDVI trajectory as regression target - 3 values per field
 ndvi_targets = np.column_stack([
     df["ndvi_apr"].values,
     df["ndvi_jun"].values,
@@ -54,9 +54,9 @@ idx = np.arange(len(embeddings))
 idx_train, idx_val = train_test_split(idx, test_size=0.2, random_state=42)
 print(f"Train: {len(idx_train)}, Val: {len(idx_val)}")
 
-# ============================================================
+
 # 2. DATASET
-# ============================================================
+
 class EmbeddingDataset(Dataset):
     def __init__(self, embeddings, targets, indices):
         self.X = torch.tensor(embeddings[indices], dtype=torch.float32)
@@ -73,12 +73,9 @@ val_ds   = EmbeddingDataset(embeddings, ndvi_targets, idx_val)
 train_dl = DataLoader(train_ds, batch_size=64, shuffle=True)
 val_dl   = DataLoader(val_ds,   batch_size=64, shuffle=False)
 
-# ============================================================
+
 # 3. FINE-TUNING HEAD
-# A lightweight MLP on top of frozen Prithvi embeddings
-# This tests: can a linear adaptation make Prithvi
-# phenologically aware?
-# ============================================================
+
 class NDVIHead(nn.Module):
     def __init__(self, in_dim=1536, hidden=256, out_dim=3):
         super().__init__()
@@ -100,9 +97,9 @@ optimizer = optim.AdamW(head.parameters(), lr=1e-3, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50)
 criterion = nn.MSELoss()
 
-# ============================================================
+
 # 4. TRAINING
-# ============================================================
+
 print("\nFine-tuning NDVI prediction head on Prithvi embeddings...")
 print("(Frozen Prithvi encoder + trainable MLP head)")
 
@@ -148,15 +145,14 @@ for epoch in range(60):
 
 print(f"\nBest val loss: {best_val_loss:.6f}")
 
-# ============================================================
+
 # 5. EXTRACT FINE-TUNED REPRESENTATIONS
-# Use the hidden layer activations as new embeddings
-# ============================================================
+
 head.load_state_dict(best_state)
 head.eval()
 
 class NDVIHeadWithHidden(nn.Module):
-    """Same as NDVIHead but returns hidden representation."""
+    
     def __init__(self, trained_head):
         super().__init__()
         self.layer1 = nn.Sequential(
@@ -192,9 +188,9 @@ with torch.no_grad():
 finetuned_reps = np.vstack(finetuned_reps)
 print(f"Fine-tuned representation shape: {finetuned_reps.shape}")
 
-# ============================================================
+
 # 6. CLUSTER FINE-TUNED REPRESENTATIONS
-# ============================================================
+
 print("\nClustering fine-tuned Prithvi representations...")
 
 scaler = StandardScaler()
@@ -210,9 +206,9 @@ print(f"  Silhouette: {ft_sil:.4f}")
 print(f"  Davies-Bouldin: {ft_db:.4f}")
 print(f"  Cluster sizes: {np.bincount(ft_labels)}")
 
-# ============================================================
+
 # 7. CHECK AGRONOMIC INTERPRETABILITY
-# ============================================================
+
 ndvi_arr = ndvi_targets
 
 print("\nFine-tuned cluster NDVI characteristics:")
@@ -224,9 +220,9 @@ for c in range(5):
           f"  Aug={ndvi_arr[mask,2].mean():.3f}"
           f"  Δ={ndvi_arr[mask,2].mean()-ndvi_arr[mask,1].mean():.3f}")
 
-# ============================================================
+
 # 8. UPDATED BENCHMARK TABLE
-# ============================================================
+
 # Reload other scores
 df_bench = pd.read_csv(f"{DATA_DIR}/benchmark_results_complete.csv")
 
@@ -252,8 +248,8 @@ n_lab = KMeans(5, random_state=42, n_init=10).fit_predict(X_n)
 n_sil = silhouette_score(X_n, n_lab)
 n_db  = davies_bouldin_score(X_n, n_lab)
 
-print("\n" + "="*68)
-print("UPDATED BENCHMARK — Franconia Sugar Beet Fields 2022 (n=1020)")
+
+print("UPDATED BENCHMARK - Franconia Sugar Beet Fields 2022 (n=1020)")
 print("="*68)
 print(f"{'Model':<35} {'Silhouette ↑':>12} {'Davies-Bouldin ↓':>16}")
 print("-"*68)
@@ -264,9 +260,9 @@ print(f"{'Random Forest (leaf embed)':<35} {0.1808:>12.4f} {1.9522:>16.4f}")
 print(f"{'Raw Spectral KMeans':<35} {0.1793:>12.4f} {1.4884:>16.4f}")
 print("="*68)
 
-# ============================================================
+
 # 9. TRAINING CURVE PLOT
-# ============================================================
+
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 axes[0].plot(train_losses, label='Train loss', color='#1f77b4')
@@ -288,8 +284,8 @@ for c in range(5):
     axes[1].plot(["Apr 16","Jun 18","Aug 7"], mean_traj,
                 'o-', color=colors5[c], linewidth=2,
                 label=f"Cluster {c} (n={mask.sum()})")
-axes[1].set_title('Fine-tuned Prithvi — NDVI Trajectory per Cluster\n'
-                  '(agronomic interpretability after adaptation)',
+axes[1].set_title('Fine-tuned Prithvi - NDVI Trajectory per Cluster'
+                  ,
                   fontweight='bold')
 axes[1].set_ylabel('Mean NDVI')
 axes[1].legend(fontsize=9)

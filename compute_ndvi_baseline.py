@@ -24,9 +24,9 @@ with rasterio.open(f"{SCENE_DIR}/{DATES[0]}/B02.tif") as src:
     scene_crs = src.crs
 gdf = gdf.to_crs(scene_crs)
 
-# ============================================================
+
 # COMPUTE REAL NDVI (B08 NIR 10m / B04 Red 10m)
-# ============================================================
+
 print("Computing NDVI/NDRE per field (B04, B08 at 10m)...")
 
 ndvi_features = []
@@ -78,9 +78,9 @@ print(f"NDVI value range: {ndvi_traj.min():.3f} to {ndvi_traj.max():.3f}")
 print(f"Mean NDVI per timestep: {ndvi_traj.mean(axis=0).round(3)}")
 print(f"Fields with all-zero NDVI: {(ndvi_traj.sum(axis=1) == 0).sum()}")
 
-# ============================================================
+# 
 # CLUSTER NDVI BASELINE
-# ============================================================
+
 print("\nClustering NDVI baseline...")
 
 scaler = StandardScaler()
@@ -103,9 +103,9 @@ else:
     ndvi_sil = 0.0
     ndvi_db  = 999.0
 
-# ============================================================
+
 # LOAD PRITHVI RESULTS
-# ============================================================
+
 print("\nLoading Prithvi embeddings...")
 with open(f"{DATA_DIR}/prithvi_embeddings_all_fields.pkl", "rb") as f:
     prithvi_results = pickle.load(f)
@@ -121,11 +121,11 @@ prithvi_labels = km_prithvi.fit_predict(X_prithvi_pca)
 prithvi_sil = silhouette_score(X_prithvi_pca, prithvi_labels)
 prithvi_db  = davies_bouldin_score(X_prithvi_pca, prithvi_labels)
 
-# ============================================================
-# RESULTS TABLE
-# ============================================================
-print("\n" + "="*60)
-print("BENCHMARK RESULTS — Franconia Sugar Beet Fields, 2022")
+
+# RESULTS 
+
+
+print("BENCHMARK RESULTS - Franconia Sugar Beet Fields, 2022")
 print("n=1020 fields, 3 Sentinel-2 timesteps (Apr/Jun/Aug)")
 print("="*60)
 print(f"{'Model':<25} {'Silhouette':>12} {'Davies-Bouldin':>16}")
@@ -139,9 +139,9 @@ better_db  = "Prithvi" if prithvi_db  < ndvi_db  else "NDVI"
 print(f"\nBetter Silhouette:     {better_sil}")
 print(f"Better Davies-Bouldin: {better_db}")
 
-# ============================================================
-# PLOT — NDVI TRAJECTORIES PER CLUSTER
-# ============================================================
+
+# PLOT  NDVI TRAJECTORIES PER CLUSTER
+
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 colors = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd']
@@ -155,7 +155,7 @@ for c in range(5):
     axes[0].plot(DATE_LABELS, mean_traj, 'o-',
                 color=colors[c], linewidth=2,
                 label=f"Cluster {c} (n={mask.sum()})")
-axes[0].set_title('NDVI Baseline — Mean Trajectory per Cluster',
+axes[0].set_title('NDVI Baseline - Mean Trajectory per Cluster',
                   fontweight='bold')
 axes[0].set_ylabel('Mean NDVI')
 axes[0].legend(fontsize=9)
@@ -170,7 +170,7 @@ for c in range(5):
     axes[1].plot(DATE_LABELS, mean_traj, 'o-',
                 color=colors[c], linewidth=2,
                 label=f"Cluster {c} (n={mask.sum()})")
-axes[1].set_title('Prithvi EO 2.0 — NDVI Trajectory per Cluster',
+axes[1].set_title('Prithvi EO 2.0 - NDVI Trajectory per Cluster',
                   fontweight='bold')
 axes[1].set_ylabel('Mean NDVI')
 axes[1].legend(fontsize=9)

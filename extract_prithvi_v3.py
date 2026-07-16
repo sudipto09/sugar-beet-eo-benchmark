@@ -25,11 +25,11 @@ DATES  = ["20220416", "20220618", "20220807"]
 IMG_SIZE = 64
 
 device = torch.device("cuda")
-print(f"Device: {device} — {torch.cuda.get_device_name(0)}")
+print(f"Device: {device} - {torch.cuda.get_device_name(0)}")
 
-# ============================================================
+
 # LOAD MODEL
-# ============================================================
+
 print("Loading Prithvi EO 2.0 300M...")
 with open(f"{MODEL_DIR}/config.json") as f:
     cfg = json.load(f)["pretrained_cfg"]
@@ -45,18 +45,18 @@ model.to(device)
 model.eval()
 print(f"Model loaded")
 
-# ============================================================
+
 # LOAD + REPROJECT FIELDS
-# ============================================================
+
 gdf = gpd.read_file(FIELDS_PATH)
 with rasterio.open(f"{SCENE_DIR}/{DATES[0]}/B02.tif") as src:
     scene_crs = src.crs
 gdf = gdf.to_crs(scene_crs)
 print(f"Fields: {len(gdf)} reprojected to {scene_crs}")
 
-# ============================================================
+
 # HELPER: Crop one band, handle uint16 nodata
-# ============================================================
+
 def crop_band(date, band, field_geom):
     path = f"{SCENE_DIR}/{date}/{band}.tif"
     with rasterio.open(path) as src:
@@ -68,9 +68,9 @@ def crop_band(date, band, field_geom):
         return None
     return out
 
-# ============================================================
+
 # MAIN EXTRACTION
-# ============================================================
+
 def extract_embeddings(fields_gdf, label=""):
     results = []
     failed = 0
@@ -120,8 +120,7 @@ def extract_embeddings(fields_gdf, label=""):
         with torch.no_grad():
             try:
                 _, pred, _ = model(x, None, None, 0.0)
-                # pred: [1, num_patches, embed_dim]
-                # Mean pool → field-level embedding
+                
                 emb = pred.mean(dim=1).squeeze(0).cpu().numpy()
             except Exception as e:
                 failed += 1
@@ -135,9 +134,9 @@ def extract_embeddings(fields_gdf, label=""):
 
     return results, failed
 
-# ============================================================
-# SMOKE TEST — 50 FIELDS
-# ============================================================
+
+# SMOKE TEST - 50 FIELDS
+
 print("\nSmoke test: 50 fields...")
 results, failed = extract_embeddings(gdf.head(50), "Smoke test")
 
@@ -155,7 +154,7 @@ mem = torch.cuda.memory_allocated() / 1024**2
 print(f"GPU memory: {mem:.0f} MB / 12288 MB")
 
 if len(results) > 40:
-    print("\nSmoke test passed — running full 1020 fields...")
+    print("\nSmoke test passed - running full 1020 fields...")
     all_results, all_failed = extract_embeddings(gdf, "Full run")
     print(f"\nFull run: {len(all_results)} / {len(gdf)} successful")
     out_path = f"{DATA_DIR}/prithvi_embeddings_all_fields.pkl"
@@ -163,4 +162,4 @@ if len(results) > 40:
         pickle.dump(all_results, f)
     print(f"Saved: {out_path}")
 else:
-    print("\nSmoke test did not pass threshold — check errors above.")
+    print("\nSmoke test did not pass threshold - check errors above.")

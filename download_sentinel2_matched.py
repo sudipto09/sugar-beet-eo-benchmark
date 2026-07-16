@@ -4,9 +4,7 @@ import rasterio
 import numpy as np
 from pathlib import Path
 
-# Our fields are centered around:
-# lon: 9.8 - 10.3, lat: 49.7 - 49.95
-# Use this exact bbox for Sentinel-2 search
+
 BBOX = [9.8, 49.7, 10.3, 49.95]
 
 BANDS = ["B02", "B03", "B04", "B05", "B06", "B07"]

@@ -54,10 +54,10 @@ daily["date"] = pd.to_datetime(daily["date"])
 daily["year"] = daily["date"].dt.year
 daily["month"] = daily["date"].dt.month
 
-# Wolf & Verreet rule — only apply if we have enough valid hours
+# Wolf & Verreet rule - only apply if we have enough valid hours
 daily["infection_risk"] = (
     (daily["temp_mean"] >= 15) &        # Mean temp >= 15°C
-    (daily["temp_mean"] <= 28) &        # Mean temp <= 28°C (upper limit for spore germination)
+    (daily["temp_mean"] <= 28) &        # Mean temp <= 28°C 
     (daily["rh_hours_above_60"] >= 6) & # RH >= 60% for at least 6 hours
     (daily["n_valid_hours"] >= 18)      # Only flag if we have >= 18 valid hourly readings
 ).astype(int)

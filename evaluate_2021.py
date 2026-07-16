@@ -40,18 +40,18 @@ N_SEEDS = 10
 device = torch.device("cuda")
 print(f"Device: {device}")
 
-# ============================================================
+
 # LOAD FIELDS
-# ============================================================
+
 gdf = gpd.read_file(FIELDS_PATH)
 with rasterio.open(f"{SCENE_DIR}/{DATES[0]}/B02.tif") as src:
     scene_crs = src.crs
 gdf = gdf.to_crs(scene_crs)
 print(f"Fields: {len(gdf)}")
 
-# ============================================================
+
 # STEP 1: EXTRACT PRITHVI EMBEDDINGS FOR 2021
-# ============================================================
+
 print("\nLoading Prithvi model...")
 with open(f"{MODEL_DIR}/config.json") as f:
     cfg = json.load(f)["pretrained_cfg"]
@@ -147,18 +147,18 @@ print(f"Embeddings: {embeddings_2021.shape}, failed: {failed}")
 print(f"2021 NDVI range: {ndvi_traj_2021[ndvi_traj_2021>0].min():.3f} to {ndvi_traj_2021.max():.3f}")
 print(f"Mean NDVI per timestep: {ndvi_traj_2021.mean(axis=0).round(3)}")
 
-# ============================================================
+
 # STEP 2: NDVI FEATURES
-# ============================================================
+
 ndvi_feats_2021 = np.column_stack([
     ndvi_traj_2021,
     ndvi_traj_2021[:,2] - ndvi_traj_2021[:,1],
     ndvi_traj_2021[:,2] - ndvi_traj_2021[:,0],
 ]).astype(np.float32)
 
-# ============================================================
+
 # STEP 3: FINE-TUNING FUNCTION (same as 2022)
-# ============================================================
+
 class NDVIHead(nn.Module):
     def __init__(self):
         super().__init__()
@@ -214,9 +214,9 @@ X_prithvi_2021 = PCA(50,random_state=0).fit_transform(
 X_ndvi_2021    = StandardScaler().fit_transform(ndvi_feats_2021)
 X_spec_2021    = StandardScaler().fit_transform(spectral_2021)
 
-# ============================================================
+
 # STEP 4: 10-SEED EVALUATION
-# ============================================================
+
 print(f"\nRunning {N_SEEDS} seeds on 2021 data...")
 
 MODELS = {
@@ -241,9 +241,9 @@ for seed in range(N_SEEDS):
         scores_2021[name]["sil"].append(silhouette_score(X,lab))
         scores_2021[name]["db"].append(davies_bouldin_score(X,lab))
 
-# ============================================================
+
 # STEP 5: CROSS-YEAR COMPARISON TABLE
-# ============================================================
+
 # Load 2022 scores
 df_seeds = pd.read_csv(f"{DATA_DIR}/all_seeds_results.csv")
 scores_2022 = {}
@@ -254,8 +254,8 @@ for name in MODELS:
         "db":  sub["davies_bouldin"].tolist()
     }
 
-print("\n" + "="*85)
-print("CROSS-YEAR BENCHMARK — 2022 vs 2021 (10 seeds, IQM)")
+
+print("CROSS-YEAR BENCHMARK - 2022 vs 2021 (10 seeds, IQM)")
 print("Sugar Beet Fields, Franconia (n=1020)")
 print("="*85)
 print(f"{'Model':<30} {'2022 Sil':>10} {'2021 Sil':>10} {'2022 DB':>10} {'2021 DB':>10} {'Rank stable?':>14}")

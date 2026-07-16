@@ -2,7 +2,7 @@ import geopandas as gpd
 from shapely.geometry import box
 
 # Create 100 test sugar beet field polygons
-# (Real DLR fields come later; for now, valid geometries)
+
 
 fields_data = {
     "field_id": [f"FR_{i:03d}" for i in range(50)] + [f"NRW_{i:03d}" for i in range(50)],
