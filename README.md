@@ -54,6 +54,14 @@ Sentinel-2, two seasons (2021, 2022), three dates per season.
 
 SatMAE and DINOv2 are planned but not run yet.
 
+## Figures
+
+Regenerate with `python make_figures.py` (reads `results/*.csv`).
+
+![Layer-wise probing](figures/layerwise.png)
+![Held-out date probe](figures/heldout.png)
+![Clustering silhouette, 2022](figures/clustering.png)
+
 ## Caveats
 
 - DLR CropTypes is a classified (random-forest) product, not ground truth.
@@ -74,6 +82,7 @@ SatMAE and DINOv2 are planned but not run yet.
 | `compute_targets.py` | NDVI trajectory targets per field |
 | `extract_prithvi_v4.py` | encoder features from all 24 blocks; perturbation modes; 30 m variant |
 | `probe_temporal.py` | Exp A, B, C; bootstrap and paired bootstrap |
+| `make_figures.py` | figures from `results/*.csv` |
 | `compare_variants.py` | native vs 30 m comparison |
 | `run_seeds_v2.py` | clustering benchmark |
 | `run_year.sh`, `run_variants.sh` | per-year and 30 m pipelines |
