@@ -1,27 +1,7 @@
 """
 Per-field spectral targets and classical baselines, computed correctly.
 
-Replaces the NDVI columns in benchmark_results_full.csv and the spectral
-feature block that was computed inline inside run_10_seeds.py.
 
-Two fixes over the earlier version:
-
-1. NDVI used B07 as a "NIR proxy". B07 is a red-edge band at 783 nm; the
-   standard NDVI uses the broad NIR at 842 nm (B08). Red-edge saturates
-   differently over dense canopy, so the earlier trajectories compressed
-   exactly where sugar beet canopy closure happens.
-
-2. No radiometric offset was applied, so 2022 scenes (processing baseline
-   >= 04.00) were biased by +1000 DN before the ratio was taken. A ratio
-   index is not invariant to an additive offset: it pulls NDVI toward
-   zero, and by a different amount at each reflectance level.
-
-Outputs, per year:
-    Data/field_targets_<year>.csv    field_id, ndvi_*, ndre_*, band means
-    Data/spectral_features_<year>.npy   [n_fields, n_dates * n_bands]
-
-Usage:
-    python compute_targets.py --year 2022
 """
 
 import argparse
@@ -89,14 +69,13 @@ def add_indices(df, dates, labels):
     """NDVI and NDRE per date, from band means."""
     for date, label in zip(dates, labels):
         red = df[f"B04_{date}"]
-        nir = df[f"B08_{date}"]          # broad NIR, the standard choice
+        nir = df[f"B08_{date}"]          # broad NIR
         rededge = df[f"B05_{date}"]
 
         df[f"ndvi_{label}"] = (nir - red) / (nir + red + EPS)
         df[f"ndre_{label}"] = (nir - rededge) / (nir + rededge + EPS)
 
-    # Trajectory shape features, which is what the temporal comparison
-    # actually turns on.
+    
     first, mid, last = labels
     df["ndvi_greenup"] = df[f"ndvi_{mid}"] - df[f"ndvi_{first}"]
     df["ndvi_senescence"] = df[f"ndvi_{last}"] - df[f"ndvi_{mid}"]
@@ -139,7 +118,7 @@ def main():
     df.to_csv(out_csv, index=False)
     print(f"\nSaved: {out_csv}")
 
-    # Spectral baseline: every band mean at every date, in a fixed order.
+    # Spectral baseline: every band mean at every date
     cols = [f"{b}_{d}" for d in dates for b in config.BASELINE_BANDS]
     spectral = df[cols].to_numpy(dtype=np.float32)
     out_npy = config.DATA_DIR / f"spectral_features_{args.year}.npy"

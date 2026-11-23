@@ -1,22 +1,7 @@
 """
 Does edge/mixed-pixel contamination explain the low field-mean NDVI?
 
-compute_targets.py averages every pixel the polygon touches
-(all_touched=True). At 10 m, narrow fields have a large share of edge
-pixels mixing in track, hedge or neighbouring crop, which pulls the field
-mean towards soil. This recomputes NDVI for one date three ways:
 
-  touched : all_touched=True            (what compute_targets.py does)
-  centre  : all_touched=False           (pixel centre inside polygon)
-  core    : polygon shrunk by --erode m (interior pixels only)
-
-If core NDVI is clearly higher than touched NDVI, the targets are diluted
-by edges and compute_targets.py should switch to core pixels. If all three
-agree, edge mixing is ruled out and the low NDVI comes from elsewhere
-(stress, label noise, radiometry).
-
-Usage (lab machine, needs the rasters):
-    python check_field_purity.py --year 2022 --date-index 1
 """
 
 import argparse

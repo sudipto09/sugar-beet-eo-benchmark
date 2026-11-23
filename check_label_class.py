@@ -1,27 +1,7 @@
 """
-What crop are the 1020 polygons, really?
+What crop are the 1020 polygons?
 
-The polygons were cut from the DLR WMS layer CROPTYPES_DE_P1Y_V02 by
-selecting raster value 13 (extract_fields_highres.py). The downloadable
-DLR product has a legend (LEGEND_CropTypes_v21.txt) in which code 13 is
-WINTER RYE and sugar beet is code 60. The WMS layer appears to serve
-ordinal class indices instead (13 = the 13th class = sugar beet), but that
-was inferred, not verified, and the legend saved by map_all_classes.py has
-duplicate and missing entries. This script settles it from two independent
-angles, using the downloadable v21 raster for 2022:
 
- 1. COMPOSITION: which v21 class lies under each polygon. If the polygons
-    are sugar beet, class 60 should dominate.
- 2. FINGERPRINT: field-mean NDVI at the three dates for random pixels of
-    each major v21 class, compared with the polygons' mean trajectory.
-    This does not depend on any label code: it asks which crop the
-    polygons behave like.
-
-Get the raster: open download.geoservice.dlr.de/CROPTYPES/files/ , take the
-2022 GeoTIFF (10 m, EPSG:32632, all of Germany, Cloud Optimized, so only
-the window around your fields is read) and pass its path or URL:
-
-    python check_label_class.py --raster <path-or-url-to-2022-croptypes.tif>
 """
 
 import argparse
@@ -49,8 +29,7 @@ def read_window(raster, bounds, pad=1000.0):
     from rasterio.windows import Window
     win = from_bounds(minx - pad, miny - pad, maxx + pad, maxy + pad,
                       raster.transform).round_offsets().round_lengths()
-    # Clip to the raster. Without this, a window that overhangs the edge is
-    # read clipped but its transform is not, and every pixel is misplaced.
+    
     try:
         win = win.intersection(Window(0, 0, raster.width, raster.height))
     except Exception:                                      # noqa: BLE001
@@ -99,7 +78,7 @@ def main():
           f"{sorted(int(c) for c in np.unique(cls) if c)[:30]}")
 
     if not args.fingerprint_only:
-        # ---------------- 1. composition under the polygons ----------------
+        # 1. composition under the polygons 
         majority, share60, share13 = [], [], []
         for geom in gdf_r.geometry:
             m = geometry_mask([geom], out_shape=cls.shape, transform=tf,
@@ -129,7 +108,7 @@ def main():
               f"{np.nanmean(share13):.1%}")
 
 
-    # ---------------- 2. spectral fingerprint ---------------------------
+    #  2. spectral fingerprint 
     scene_crs = None
     arrays = {}
     for d in dates:

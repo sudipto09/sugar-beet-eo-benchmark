@@ -1,29 +1,6 @@
 """
 Cut sugar beet field polygons for ONE YEAR from the DLR CropTypes map.
 
-Same method as extract_fields_highres.py (vectorise the sugar beet pixels,
-keep 0.5-100 ha), but:
-  * it reads the downloadable v21 GeoTIFF, where sugar beet is class 60
-    (NOT 13, which is winter rye in that legend);
-  * it works for any year, so 2021 gets its own correct labels instead of
-    reusing the 2022 polygons.
-
-The 2022 polygons already in use came from the WMS layer
-CROPTYPES_DE_P1Y_V02 and were verified against the V021 map (98.1% have
-sugar beet as majority class), so they are NOT regenerated. 2021 therefore
-comes from V021 and 2022 from V02: two product versions. Pass --year 2022
-with --out elsewhere if you want a like-for-like 2022 set from V021, but
-that would change the 2022 field set and require re-extracting 2022.
-
-Use --like to restrict to the extent of the existing 2022 polygons, so both
-years cover the same area:
-
-    python make_polygons_from_croptypes.py --year 2021 \\
-        --raster https://download.geoservice.dlr.de/CROPTYPES/files/CROPTYPES_DE_P1Y_2021_V021/CROPTYPES_DE_P1Y_2021_V021.tif \\
-        --like Data/sugar_beet_fields_franconia_hires.geojson
-
-Output: Data/sugar_beet_fields_<year>.geojson (EPSG:32632), with field_id,
-area_ha, crop_class, crop_name, year.
 """
 
 import argparse

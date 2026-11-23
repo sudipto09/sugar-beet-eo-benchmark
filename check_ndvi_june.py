@@ -1,21 +1,6 @@
 """
 Diagnostic: check whether June NDVI = 0.60 is canopy timing or a bad offset.
 
-The sanity note in compute_targets.py expects June NDVI ~ 0.7-0.9 for
-closed sugar beet canopy. The 2022 run showed a mean of 0.604, which is
-below that range.  This script checks:
-
-1. Percentile distribution of June NDVI (is the mean pulled down by a
-   few bad fields, or is the whole distribution shifted?).
-2. Comparison with the raw B08 and B04 reflectances that go into NDVI.
-3. Whether the BOA offset was applied correctly (reversed check: compute
-   NDVI with and without offset and compare).
-4. Whether the 0.60 is plausible given the date (18 June) — sugar beet
-   canopy closure in Franconia typically happens late June to mid-July,
-   so 18 June may simply be pre-closure.
-
-Usage:
-    python check_ndvi_june.py --year 2022
 """
 
 import argparse
@@ -45,7 +30,7 @@ def main():
     print(f"JUNE NDVI DIAGNOSTIC - {args.year}")
     print("=" * 68)
 
-    # --- 1. Percentile distribution ---
+    # 1. Percentile distribution
     print("\n1. NDVI distribution per date\n")
     for label, date in zip(config.DATE_LABELS, dates):
         col = f"ndvi_{label.lower()[:3]}"
@@ -66,7 +51,7 @@ def main():
             print(f"    WARNING: {low} fields <0, {high} fields >1 "
                   "(bad reflectance values)")
 
-    # --- 2. Raw band reflectances ---
+    # 2. Raw band reflectances 
     print("\n2. Raw band reflectances (B04=Red, B08=NIR)\n")
     for label, date in zip(config.DATE_LABELS, dates):
         b04 = f"B04_{date}"
@@ -87,13 +72,13 @@ def main():
         else:
             print(f"  {label} ({date}): band columns not found in targets CSV")
 
-    # --- 3. Offset check ---
+    # 3. Offset check
     print("\n3. Offset verification\n")
     for date in dates:
         offset = config.boa_offset(date)
         print(f"  {date}: offset = {offset:.0f}")
 
-    # --- 4. Phenological context ---
+    # 4. Phenological context
     print("\n4. Phenological context\n")
     print("  Typical Franconia sugar beet: emergence Apr-early May, canopy")
     print("  closure late Jun-mid Jul, senescence Sep-Oct. Reference values")
@@ -104,7 +89,7 @@ def main():
         if col in df.columns:
             print(f"  {label} ({day}): mean NDVI = {df[col].mean():.3f}")
 
-    # --- 5. Trajectory sanity ---
+    # 5. Trajectory sanity
     print("\n5. Trajectory shape check\n")
     labels = [l.lower()[:3] for l in config.DATE_LABELS]
     cols = [f"ndvi_{l}" for l in labels]
@@ -124,7 +109,7 @@ def main():
         print("  Most fields are still rising into August, suggesting")
         print("  late canopy closure. June NDVI < 0.7 is expected.")
     elif peaked_at_jun > 0.5:
-        print("  Most fields peak at June — classic early-closure pattern.")
+        print("  Most fields peak at June - classic early-closure pattern.")
     else:
         print("  Mixed trajectory shapes.")
 

@@ -1,9 +1,7 @@
 """
 Temporal probing of frozen EO foundation model features.
 
-This is the reframed contribution: instead of asking "does fine-tuning
-Prithvi beat NDVI at clustering", it asks what the frozen representation
-actually encodes about a field's season, and whether that information is
+What the frozen representation actually encodes about a field's season, and whether that information is
 temporal or merely spectral.
 
 Three experiments
@@ -63,10 +61,7 @@ import config
 
 ALPHAS = np.logspace(-2, 4, 13)
 N_FOLDS = 5
-TAG = ""          # suffix of the extraction pickles, set by --tag
-
-# Targets. The trajectory-shape targets matter most: a purely spectral
-# representation can do well on single-date NDVI while failing on these.
+TAG = ""     
 TARGETS = {
     "ndvi_apr":        "April NDVI (single date)",
     "ndvi_jun":        "June NDVI (single date)",
@@ -79,9 +74,7 @@ TARGETS = {
 TRAJECTORY_TARGETS = ["ndvi_greenup", "ndvi_senescence", "ndvi_amplitude"]
 
 
-# --------------------------------------------------------------------
-# Loading
-# --------------------------------------------------------------------
+
 
 def load_mode(year, mode):
     """Load one extraction pickle, or None if it has not been produced."""
@@ -109,20 +102,10 @@ def align(records, targets_df):
     return embeddings, layers, df.reset_index(drop=True)
 
 
-# --------------------------------------------------------------------
-# Probing
-# --------------------------------------------------------------------
+# probing functions
 
 def probe_r2(features, target, seed=0, groups=None):
-    """Cross-validated R^2 of a ridge probe. Standardised, alpha by CV.
-
-    `groups` keeps every copy of the same original field inside one fold.
-    That matters under bootstrap resampling: with plain k-fold, a field
-    drawn twice can land in both the training and the test split, so the
-    probe is scored partly on rows it was fitted on and R^2 comes out
-    optimistically biased - visible as a confidence interval that does not
-    even contain its own point estimate.
-    """
+    
     model = make_pipeline(StandardScaler(), RidgeCV(alphas=ALPHAS))
 
     if groups is None:
@@ -139,12 +122,7 @@ def probe_r2(features, target, seed=0, groups=None):
 
 
 def probe_r2_gb(features, target, seed=0):
-    """Cross-validated R^2 using a gradient boosting regressor.
-
-    This is the nonlinear capacity control for experiment C: if a
-    gradient-boosted tree on the same 12 raw spectral features matches
-    Prithvi's 1024-dim ridge, the advantage was capacity not encoding.
-    """
+    
     model = make_pipeline(
         StandardScaler(),
         GradientBoostingRegressor(
@@ -184,31 +162,13 @@ def probe_with_ci_gb(features, target, n_boot=1000, seed=0):
 
 
 def is_construction_ceiling(name, target):
-    """Flag comparisons that a baseline wins by definition.
-
-    ndvi_greenup is literally ndvi_jun minus ndvi_apr, and both are
-    columns of the NDVI/NDRE baseline, so that baseline reaches R^2 = 1
-    by construction. Reporting it next to a foundation model as though
-    the two competed would be meaningless; it is a ceiling, not a rival.
-    """
-    # Amplitude (max - min) is nonlinear in the baseline columns, so the
-    # baselines do NOT reach R^2 = 1 on it; it is a genuine comparison.
+    
     return (name in ("ndvi_ndre", "spectral")
             and target in ("ndvi_greenup", "ndvi_senescence"))
 
 
 def paired_bootstrap_diff(features_a, features_b, target, n_boot=1000, seed=0):
-    """Paired bootstrap on the R^2 difference between two feature sets.
-
-    Both probes are fitted once by cross-validation, and the bootstrap
-    resamples the SAME field indices from both sets of out-of-fold
-    predictions.  This pairs the comparison: a field that happens to be
-    easy or hard affects both scores the same way, so the interval on
-    the difference is much tighter than the difference of two marginal
-    intervals.
-
-    Returns (point_diff, lo, hi) where diff = R^2(A) - R^2(B).
-    """
+    
     model_a = make_pipeline(StandardScaler(), RidgeCV(alphas=ALPHAS))
     model_b = make_pipeline(StandardScaler(), RidgeCV(alphas=ALPHAS))
     folds = KFold(n_splits=N_FOLDS, shuffle=True, random_state=seed)
@@ -253,24 +213,7 @@ def bootstrap_ci(values, n_boot=1000, ci=0.95, seed=0):
 
 
 def probe_with_ci(features, target, n_boot=1000, seed=0):
-    """Point R^2 plus a CI from bootstrapping over FIELDS.
-
-    Resampling fields rather than random seeds is what makes the interval
-    meaningful for a deterministic feature set: re-seeding a deterministic
-    pipeline produces identical numbers and a zero-width interval, which
-    is the degenerate-CI problem in the original multi-seed script.
-
-    The probe is fitted ONCE, by cross-validation, and the bootstrap then
-    resamples the out-of-fold predictions. Refitting the probe inside each
-    resample instead would bias the interval downward: a bootstrap sample
-    of size n holds only about 63% distinct fields, so every refit trains
-    on fewer distinct examples than the point estimate did, and the whole
-    interval drifts below the value it is meant to bracket.
-
-    The interval therefore describes evaluation uncertainty - how far the
-    score would move on another sample of fields of this size - which is
-    the quantity a benchmark comparison needs.
-    """
+    
     model = make_pipeline(StandardScaler(), RidgeCV(alphas=ALPHAS))
     folds = KFold(n_splits=N_FOLDS, shuffle=True, random_state=seed)
     predicted = cross_val_predict(model, features, target, cv=folds)
@@ -293,9 +236,7 @@ def probe_with_ci(features, target, n_boot=1000, seed=0):
     return float(point), float(lo), float(hi)
 
 
-# --------------------------------------------------------------------
-# Representation similarity
-# --------------------------------------------------------------------
+#representation similarity metrics
 
 def linear_cka(x, y):
     """Linear CKA between two representation matrices of the same rows.
@@ -321,9 +262,9 @@ def mean_cosine_distance(x, y):
     return float(np.mean(1.0 - np.sum(xn * yn, axis=1)))
 
 
-# --------------------------------------------------------------------
+
 # Experiments
-# --------------------------------------------------------------------
+
 
 def experiment_a(layers, embeddings, baselines, df, n_boot):
     """Layer-wise probing."""
@@ -334,7 +275,7 @@ def experiment_a(layers, embeddings, baselines, df, n_boot):
     rows = []
 
     if layers is None:
-        print("\n[skip] per-layer output not in the pickle. Re-run "
+        print("\nper-layer output not in the pickle. Re-run "
               "extract_prithvi_v4.py without --no-layers.")
     else:
         n_layers = layers.shape[1]
@@ -402,7 +343,7 @@ def experiment_b(year, reference, df, baselines, n_boot, best_layer_ref=None,
     for mode in modes:
         records = load_mode(year, mode)
         if records is None:
-            print(f"\n[skip] mode '{mode}' not extracted. Run: "
+            print(f"\n mode '{mode}' not extracted. Run: "
                   f"python extract_prithvi_v4.py --mode {mode}")
             continue
         available[mode] = records
@@ -424,9 +365,7 @@ def experiment_b(year, reference, df, baselines, n_boot, best_layer_ref=None,
         for target, value in best_r2.items():
             print(f"  {target:<18} {value:>7.4f}")
 
-    # April-only leakage references for repeat_first.
-    # repeat_first collapses all dates to April, so its R^2 should be
-    # compared to what April-only features can predict, not to zero.
+  
     apr_idx_cols = [c for c in ["ndvi_apr", "ndre_apr"] if c in df.columns]
     if apr_idx_cols:
         apr_idx_features = df[apr_idx_cols].to_numpy()
@@ -436,7 +375,7 @@ def experiment_b(year, reference, df, baselines, n_boot, best_layer_ref=None,
         for target, value in apr_idx_r2.items():
             print(f"  {target:<18} {value:>7.4f}")
 
-    # April-only raw spectral bands (6 bands) — stronger leakage reference.
+    # April-only raw spectral bands (6 bands) 
     spectral_path = config.DATA_DIR / f"spectral_features_{year}.npy"
     apr_raw_r2 = None
     if spectral_path.exists():
@@ -467,7 +406,7 @@ def experiment_b(year, reference, df, baselines, n_boot, best_layer_ref=None,
     for mode, records in available.items():
         perturbed, p_layers, pdf = align(records, df)
 
-        # align() may drop different rows; intersect on field_id
+        
         shared = pdf["field_id"].isin(df["field_id"])
         shared_np = shared.to_numpy()
         perturbed = perturbed[shared_np]
@@ -490,8 +429,7 @@ def experiment_b(year, reference, df, baselines, n_boot, best_layer_ref=None,
                **{f"r2_{k}": v for k, v in scores.items()},
                **{f"delta_r2_{k}": scores[k] - ref_r2[k] for k in scores}}
 
-        # Paired bootstrap on the R^2 change (perturbed - reference),
-        # for the final layer and, if available, the best layer.
+        
         variants = [("final", perturbed, ref_subset)]
         if (best_layer_ref is not None and p_layers is not None
                 and best_layer_idx is not None):
@@ -543,7 +481,7 @@ def experiment_c(year, df, baselines, n_boot):
 
     records = load_mode(year, "mask_last")
     if records is None:
-        print("\n[skip] mode 'mask_last' not extracted. Run: "
+        print("\n mode 'mask_last' not extracted. Run: "
               "python extract_prithvi_v4.py --mode mask_last")
         return pd.DataFrame()
 
@@ -555,10 +493,7 @@ def experiment_c(year, df, baselines, n_boot):
     early_cols = [c for c in early_cols if c in mdf.columns]
     early = mdf[early_cols].to_numpy()
 
-    # Raw spectral bands from April and June only (dimension-matched control).
-    # spectral_features has 18 cols: 6 bands × 3 dates.
-    # Apr = cols 0:6, Jun = cols 6:12 (labels sorted as apr/aug/jun by
-    # compute_targets → actually apr=0:6, jun=6:12, aug=12:18).
+    
     spectral_path = config.DATA_DIR / f"spectral_features_{year}.npy"
     spectral_early = None
     if spectral_path.exists():
@@ -577,7 +512,7 @@ def experiment_c(year, df, baselines, n_boot):
 
     rows = []
 
-    # --- Ridge probes (linear) ---
+    # ridge probe on the frozen representation, and on the baselines with the same information.
     print("  Linear ridge probes:")
     contenders = {"prithvi (Apr+Jun encoded)": masked,
                   "NDVI/NDRE (Apr+Jun)": early}
@@ -590,7 +525,7 @@ def experiment_c(year, df, baselines, n_boot):
         rows.append({"features": name, "model": "ridge",
                      "r2": point, "lo": lo, "hi": hi})
 
-    # --- Gradient-boosted trees (nonlinear capacity control) ---
+    # Gradient-boosted trees 
     print("\n  Gradient boosting (capacity control):")
     gb_contenders = {"NDVI/NDRE (Apr+Jun) GB": early}
     if spectral_early is not None:
@@ -689,7 +624,7 @@ def main():
     print(f"Layers stored  : {layers.shape[1] if layers is not None else 0}")
 
     if embeddings.shape[1] == 1536:
-        print("\n[ERROR] 1536-dim features are decoder reconstructions, not")
+        print("\n1536-dim features are decoder reconstructions, not")
         print("encoder features. Re-extract with extract_prithvi_v4.py.")
         sys.exit(1)
 

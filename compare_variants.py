@@ -1,23 +1,7 @@
 """
 Does the input-resolution / image-size choice change the conclusions?
 
-Compares a baseline extraction (prithvi_enc_<year>_<mode>.pkl) with a
-variant (…<mode><tag>.pkl) produced by
-    python extract_prithvi_v4.py --mode none      --input-gsd 30 --tag _gsd30
-    python extract_prithvi_v4.py --mode mask_last --input-gsd 30 --tag _gsd30
-(or --img-size 224 --tag _s224 --batch-size 2).
 
-Reports, for the same fields:
-  * probe R^2 for the trajectory targets at the chosen layer and at the
-    final layer, baseline vs variant, with the difference
-  * linear CKA between the baseline and variant embeddings
-  * Experiment C: paired bootstrap of (variant - baseline) R^2 for
-    August NDVI from April + June
-A change smaller than the ~0.03 noise floor means the gap does not matter
-for these conclusions; a larger one means it does and must be reported.
-
-Usage:
-    python compare_variants.py --year 2022 --tag _gsd30 --layer 5
 """
 import argparse
 import pickle
@@ -104,7 +88,7 @@ def main():
         print(f"  variant - baseline {d:+.4f}  [{lo:+.4f}, {hi:+.4f}]")
         worst = max(worst, abs(d))
     else:
-        print("\n[skip] Exp C needs mask_last for both baseline and variant")
+        print("\n Exp C needs mask_last for both baseline and variant")
 
     print("\n" + "-" * 70)
     if worst <= NOISE_FLOOR:

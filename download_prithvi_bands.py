@@ -1,26 +1,6 @@
 """
 Download the Sentinel-2 bands Prithvi actually expects.
 
-The earlier download script fetched S2 B05, B06 and B07 - three red-edge
-bands - and fed them into Prithvi's NIR, SWIR1 and SWIR2 channels. See the
-band-naming note at the top of config.py. This script fetches the correct
-six:
-
-    B02 Blue   B03 Green   B04 Red   B8A NIR-narrow   B11 SWIR1   B12 SWIR2
-
-plus the bands the classical baselines need (B05 red-edge for NDRE, B08
-broad NIR for standard NDVI).
-
-B8A, B11 and B12 are 20 m bands while B02-B04 are 10 m. Each band is
-cropped by field geometry and resampled independently during extraction,
-so the mixed grid is handled there rather than here; nothing is
-pre-resampled, which keeps the native radiometry intact.
-
-Usage:
-
-    python download_prithvi_bands.py              # all configured years
-    python download_prithvi_bands.py --year 2021
-    python download_prithvi_bands.py --discover 2021
 """
 
 import argparse

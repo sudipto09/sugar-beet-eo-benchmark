@@ -1,26 +1,6 @@
 """
 Resolve the -1000 DN offset question, once, from scene metadata.
 
-Sentinel-2 processing baseline 04.00 (operational from 2022-01-25) shifted
-L2A reflectance by +1000 DN and records BOA_ADD_OFFSET = -1000. True
-reflectance is then
-
-    rho = (DN + BOA_ADD_OFFSET) / 10000
-
-Scenes produced under earlier baselines carry no offset. The 2021 and 2022
-scenes in this project therefore sit on opposite sides of the cutover, so a
-single hard-coded offset is wrong for one of the two years, and any
-year-to-year comparison inherits that error.
-
-This script asks the STAC catalogue what baseline each scene was processed
-under and writes Data/scene_metadata.json, which config.boa_offset() reads.
-
-Run once:
-
-    python check_processing_baseline.py
-
-Add --verify to also sample dark pixels from the downloaded rasters as an
-independent check on the metadata.
 """
 
 import argparse
@@ -30,7 +10,7 @@ from datetime import datetime, timedelta
 
 import config
 
-# Baseline 04.00 became operational on this date.
+
 BASELINE_0400_CUTOVER = datetime(2022, 1, 25)
 
 
@@ -89,7 +69,7 @@ def query_stac():
                 or props.get("processing:version"))
 
             if baseline is None:
-                # Metadata absent: fall back to the cutover date.
+                
                 baseline = 4.0 if day >= BASELINE_0400_CUTOVER else 3.0
                 source = "inferred from acquisition date"
             else:
@@ -113,18 +93,12 @@ def query_stac():
 
 
 def verify_against_rasters(metadata):
-    """Independent sanity check from the pixels themselves.
-
-    Under baseline >= 04.00 the +1000 shift means genuinely dark surfaces
-    (deep water, deep shadow) bottom out near 1000 DN rather than near 0.
-    A 1st-percentile blue reflectance well above zero is consistent with
-    an offset; close to zero is consistent with none.
-    """
+    
     try:
         import numpy as np
         import rasterio
     except ImportError:
-        print("\n[skip] rasterio/numpy not available for raster verification.")
+        print("\n rasterio/numpy not available for raster verification.")
         return
 
     print("\nIndependent check - 1st percentile of blue band (B02):")

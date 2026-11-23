@@ -7,7 +7,7 @@ from pathlib import Path
 R, F = Path("results"), Path("figures"); F.mkdir(exist_ok=True)
 TARGETS = ["ndvi_greenup", "ndvi_senescence", "ndvi_amplitude"]
 
-# Fig 1: layer-wise probe R^2 (per-layer rows have a numeric 'layer')
+# Fig 1: layer-wise probe R^2
 fig, axes = plt.subplots(1, 2, figsize=(10, 3.6), sharey=True)
 for ax, yr in zip(axes, (2021, 2022)):
     d = pd.read_csv(R / f"probe_layerwise_{yr}.csv")

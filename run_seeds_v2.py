@@ -1,44 +1,6 @@
 """
 Multi-seed clustering benchmark with intervals that mean something.
 
-What was wrong with run_10_seeds.py
------------------------------------
-It drew confidence intervals by bootstrapping over 10 KMeans seeds. For
-the deterministic feature sets - NDVI, raw spectral, zero-shot Prithvi -
-the features, the scaler and the PCA are identical on every seed, and
-KMeans with n_init=10 converges to the same partition almost every time.
-The ten "samples" were therefore near-duplicates, the interval collapsed
-to near-zero width, and the benchmark appeared to separate models far more
-sharply than the data supports. That is the degenerate-CI problem.
-
-Seed variation measures only the clustering algorithm's own instability.
-It says nothing about whether a result would hold on a different sample of
-fields, which is the question a benchmark is for.
-
-What this does instead
-----------------------
-Two sources of variation, reported separately:
-
-1. SEED SPREAD - KMeans refitted with 10 seeds on all fields. Reported as
-   IQM and min-max. A near-zero spread is stated plainly as algorithmic
-   stability, not disguised as a confidence interval.
-
-2. FIELD BOOTSTRAP - fields resampled with replacement; the whole pipeline
-   (scale, PCA, cluster, score) is refitted on each resample. This gives a
-   genuine interval, and it is non-degenerate for deterministic features
-   because the data itself is being resampled.
-
-3. PAIRED COMPARISON - every model is scored on the SAME resampled fields,
-   so differences between models can be bootstrapped directly. The win
-   rate and the interval on the difference are what support a claim that
-   one representation beats another. An interval on each model separately
-   does not: overlapping marginal intervals are compatible with a
-   consistent paired difference.
-
-Usage
------
-    python run_seeds_v2.py --year 2022
-    python run_seeds_v2.py --n-boot 500
 """
 
 import argparse
@@ -85,12 +47,7 @@ def score(features, seed, n_clusters):
 
 
 def load_models(year, data_dir, best_layer=5):
-    """Assemble every feature set to be compared.
-
-    `best_layer` is the probe-selected best layer from experiment A.
-    Defaults to 5, which was the best trajectory layer in the 2022 run.
-    Pass --best-layer to override.
-    """
+    
     targets_path = data_dir / f"field_targets_{year}.csv"
     if not targets_path.exists():
         print(f"{targets_path} missing - run compute_targets.py")
@@ -161,9 +118,7 @@ def main():
     for name, feats in models.items():
         print(f"  {name:<34} {feats.shape}")
 
-    # ---------------------------------------------------------------
-    # 1. Seed spread on the full sample
-    # ---------------------------------------------------------------
+ 
     print("\n" + "-" * 76)
     print("1. SEED SPREAD (algorithmic stability, all fields)")
     print("-" * 76)
@@ -187,9 +142,7 @@ def main():
             print(f"{'':<34}  (identical across seeds - KMeans is stable "
                   f"here; this is not an interval)")
 
-    # ---------------------------------------------------------------
-    # 2. Paired field bootstrap
-    # ---------------------------------------------------------------
+    
     print("\n" + "-" * 76)
     print("2. FIELD BOOTSTRAP (sampling uncertainty, paired across models)")
     print("-" * 76)
@@ -229,9 +182,7 @@ def main():
                         "db_mean": float(np.nanmean(db)),
                         "db_lo": float(db_lo), "db_hi": float(db_hi)})
 
-    # ---------------------------------------------------------------
-    # 3. Paired differences
-    # ---------------------------------------------------------------
+    
     print("\n" + "-" * 76)
     print("3. PAIRED DIFFERENCES IN SILHOUETTE (same resampled fields)")
     print("-" * 76)

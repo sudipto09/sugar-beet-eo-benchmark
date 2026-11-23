@@ -1,42 +1,6 @@
 """
 Extract frozen Prithvi EO 2.0 encoder features per field.
 
-Three corrections over extract_prithvi_v3.py
---------------------------------------------
-1. ENCODER, NOT DECODER.
-   v3 called `_, pred, _ = model(x, None, None, 0.0)` and pooled `pred`.
-   In a masked autoencoder `pred` is the DECODER's reconstruction of the
-   input patches: its width is patch_size^2 * n_bands = 16*16*6 = 1536,
-   which is exactly the 1536-dim "embedding" v3 produced. Those were
-   reconstructed pixels, not learned representations. Everything
-   downstream was clustering a lossy copy of the input.
-   This script takes the encoder's hidden states (1024-dim for the 300M
-   model) via forward hooks on the transformer blocks.
-
-2. CORRECT BANDS.
-   v3 fed Sentinel-2 B05/B06/B07 (red-edge, 705/740/783 nm) into channels
-   that Prithvi pretrained as NIR-narrow / SWIR1 / SWIR2, and normalised
-   them with NIR/SWIR statistics. See the note at the top of config.py.
-
-3. VERIFIED RADIOMETRIC OFFSET.
-   The processing-baseline offset now comes from measured scene metadata
-   per date, so 2021 and 2022 are handled correctly even though they fall
-   on opposite sides of the baseline 04.00 cutover.
-
-It also saves every layer's pooled output, which layer-wise probing needs,
-and supports temporal perturbations for the probing experiments.
-
-Usage
------
-    python extract_prithvi_v4.py --inspect            # check the model API
-    python extract_prithvi_v4.py --limit 50           # smoke test
-    python extract_prithvi_v4.py                      # full, mode=none
-    python extract_prithvi_v4.py --mode shuffle
-    python extract_prithvi_v4.py --mode repeat_first
-    python extract_prithvi_v4.py --mode mask_last
-    python extract_prithvi_v4.py --year 2021
-
-Run modes none, shuffle, repeat_first and mask_last before probe_temporal.py.
 """
 
 import argparse
@@ -62,9 +26,9 @@ PERTURBATIONS = {
 }
 
 
-# --------------------------------------------------------------------
+
 # Model loading and encoder API resolution
-# --------------------------------------------------------------------
+
 
 def load_model(n_frames, device):
     from prithvi_mae import PrithviMAE
@@ -159,9 +123,9 @@ def inspect(model):
         print(f"\n{exc}")
 
 
-# --------------------------------------------------------------------
+
 # Feature extraction
-# --------------------------------------------------------------------
+
 
 class LayerCapture:
     """Capture every transformer block's output with forward hooks.
@@ -224,7 +188,7 @@ def apply_perturbation(frames, mode, rng=None):
     if mode == "shuffle":
         # Fixed derangement: every field gets the same non-identity
         # permutation so the perturbation is clean and reproducible.
-        # [1, 2, 0] rotates Apr→Jun, Jun→Aug, Aug→Apr.
+        # [1, 2, 0] rotates Apr-Jun, Jun-Aug, Aug-Apr.
         if n == 3:
             return [1, 2, 0]
         # Fallback for other frame counts: rotate by 1.
@@ -283,8 +247,7 @@ def build_patch(gdf_row, dates, offsets, rio_mask, rasterio_mod,
             if patch.shape[0] < 2 or patch.shape[1] < 2:
                 return None
 
-            # nodata is 0; keep it out of the statistics by masking to NaN,
-            # correcting, then filling with the band mean (0 after scaling).
+            # Invalid pixels are 0 in the Sentinel-2 L2A DN. They are set to NaN
             invalid = patch <= 0
             patch = patch - offsets[date]
             patch = (patch - config.PRITHVI_MEAN[b_idx]) / config.PRITHVI_STD[b_idx]
@@ -307,7 +270,7 @@ def build_patch(gdf_row, dates, offsets, rio_mask, rasterio_mod,
 
 def extract(model, gdf, dates, offsets, mode, batch_size, device,
             save_layers, input_gsd=None, img_size=None):
-    import geopandas  # noqa: F401  (import kept for clear failure message)
+    import geopandas  # noqa: F401  
     import rasterio
     from rasterio.mask import mask as rio_mask
 
@@ -383,7 +346,7 @@ def extract(model, gdf, dates, offsets, mode, batch_size, device,
     return results, failed
 
 
-# --------------------------------------------------------------------
+
 
 def main():
     ap = argparse.ArgumentParser()

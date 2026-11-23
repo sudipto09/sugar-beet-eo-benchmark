@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full pipeline for one year, in order. Stops on the first failure.
+# Full pipeline for one year, in order.
 #
 #   bash run_year.sh 2021 <url-or-path-to-DLR-CropTypes-V021-GeoTIFF-for-that-year>
 #

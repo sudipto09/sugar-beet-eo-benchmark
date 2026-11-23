@@ -1,17 +1,6 @@
 """
 Is the radiometry sound? Scene-wide NDVI, independent of the field polygons.
 
-Dense forest and healthy crops in a mid-June scene should reach NDVI of
-about 0.85 or higher at the upper end. If the whole scene's upper
-percentiles are also depressed, the problem is radiometric (offset, haze,
-band mix-up) and affects every number in the benchmark. If the scene reaches
-~0.85+ while the sugar beet polygons sit near 0.6, radiometry is fine and
-the cause is the polygons (label noise) or genuine crop condition.
-
-Also prints the result with offset 0 and 2000 to show how sensitive NDVI
-is to the offset, and median red/NIR for the scene.
-
-Usage:  python check_scene_ndvi.py --year 2022
 """
 import argparse
 import numpy as np

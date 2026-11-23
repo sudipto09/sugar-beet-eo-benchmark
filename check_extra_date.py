@@ -1,21 +1,6 @@
 """
-Do the sugar beet polygons peak after June? Add one extra acquisition.
+Do the sugar beet polygons peak after June? 
 
-Question for limitation 7: field-mean NDVI is 0.23 (Apr), 0.60 (Jun),
-0.52 (Aug). Healthy beet should keep rising into July and only then fall.
-Add a July scene and look at the four-date trajectory:
-
-  * clear rise Jun -> Jul, then fall to Aug  => canopy peaks in July; the
-    low August value is real crop condition (stress / early senescence)
-  * flat or low in July as well              => the polygons are mostly not
-    healthy beet; suspect label noise
-The script prints evidence, not a verdict, and does not touch the main
-pipeline: the extra scene only feeds this check.
-
-Steps (lab machine, needs network for --download):
-  python download_prithvi_bands.py --discover 2022      # pick a July date
-  python check_extra_date.py --date 20220710 --download
-  python check_extra_date.py --date 20220710            # re-run, no download
 """
 import argparse
 
