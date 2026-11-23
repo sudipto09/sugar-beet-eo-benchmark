@@ -1,0 +1,10 @@
+Data/
+models/
+__pycache__/
+*.pyc
+*.pkl
+*.tif
+*.npy
+*.png
+.cache/
+.ipynb_checkpoints/
