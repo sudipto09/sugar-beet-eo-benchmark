@@ -36,11 +36,19 @@ Sentinel-2, two seasons (2021, 2022), three dates per season.
 - Probe accuracy peaks in an early-to-middle layer plateau (roughly layers 1-6)
   and falls toward the final layer.
 - Removing dates destroys the probes, but shuffling or reversing the date order
-  barely changes them (CKA >= 0.99): the encoder pools over time rather than
-  representing an ordered trajectory.
-- Prithvi shows no demonstrable advantage over raw spectral bands on the
-  held-out-date task (paired differences +0.016 [-0.032, +0.065] for 2022 and
-  +0.007 [-0.014, +0.027] for 2021; both intervals include zero).
+  barely changes them (CKA >= 0.99): the representation is insensitive to date
+  order, which is consistent with the encoder pooling over time rather than
+  encoding an ordered trajectory.
+- Held-out date (predict the third date from the first two, ridge probe):
+  in 2022 Prithvi (R^2 0.277 [0.225, 0.324]) clearly beats NDVI/NDRE alone
+  (0.171 [0.122, 0.213]), but not raw spectral bands (0.253 [0.200, 0.297]);
+  the paired difference Prithvi - spectral is +0.025 [-0.021, +0.077].
+- In 2021 all held-out probes are near zero (R^2 about 0.03-0.04), so that year
+  carries little signal; the paired difference is +0.001 [-0.016, +0.019].
+  Neither year shows a demonstrable advantage of Prithvi over raw spectral bands.
+- Clustering (frozen features, silhouette, 2022): Prithvi about 0.09,
+  raw spectral means 0.19, NDVI/NDRE 0.25. Prithvi is worse here, and the paired
+  difference to NDVI/NDRE is -0.165 [-0.184, -0.146].
 - Best-layer results are robust to the 30 m resampling; the 2022 final layer is
   somewhat resolution-sensitive.
 
@@ -54,7 +62,7 @@ SatMAE and DINOv2 are planned but not run yet.
 - 2021 (cooler, wetter) and 2022 (hot, dry) are a season contrast, not
   replicates, and the acquisition dates differ by 5-10 days.
 - Only encoder features are used. Decoder output must not be reported.
-- See `LIMITATIONS.md` for the full list.
+- See [`LIMITATIONS.md`](LIMITATIONS.md) for the full list.
 
 ## Repository layout
 
@@ -71,6 +79,7 @@ SatMAE and DINOv2 are planned but not run yet.
 | `run_year.sh`, `run_variants.sh` | per-year and 30 m pipelines |
 | `check_*.py` | data checks (radiometric offset, label class, field purity, NDVI sanity) |
 | `tests/` | synthetic data generator |
+| `LIMITATIONS.md` | known limitations and open issues |
 | `results/` | small result CSVs and `scene_metadata.json` |
 
 Large data (`Data/`, model weights, feature pickles) is not in the repository.
